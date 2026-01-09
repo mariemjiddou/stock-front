@@ -1,0 +1,30 @@
+<h2>Gestion des Produits</h2>
+
+<h3>Ajouter un produit</h3>
+<input placeholder="Nom" [(ngModel)]="newProduct.name" />
+<input type="number" placeholder="Prix" [(ngModel)]="newProduct.price" />
+<input type="number" placeholder="Quantité" [(ngModel)]="newProduct.quantity" />
+<button type="button" (click)="addProduct()">Ajouter</button>
+
+<hr>
+<h3>Liste des produits</h3>
+
+<ul>
+  <li *ngFor="let p of products" style="margin-bottom: 10px;">
+    <div *ngIf="editingId !== p.id">
+      {{ p.name }} - {{ p.price }} € - Stock: {{ p.quantity }}
+      <button type="button" (click)="startEdit(p)">Modifier</button>
+      <button type="button" (click)="remove(p.id)">Supprimer</button>
+    </div>
+
+    <div *ngIf="editingId === p.id">
+      <input [(ngModel)]="editProduct.name" placeholder="Nom">
+      <input type="number" [(ngModel)]="editProduct.price" placeholder="Prix">
+      <input type="number" [(ngModel)]="editProduct.quantity" placeholder="Quantité">
+
+      <button type="button" (click)="saveEdit()">Enregistrer</button>
+      <button type="button" (click)="cancelEdit()">Annuler</button>
+    </div>
+  </li>
+</ul>
+
