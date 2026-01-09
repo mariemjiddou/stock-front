@@ -8,7 +8,8 @@ import { Product } from '../models/product';
 })
 export class ProductService {
 
- private apiUrl = 'https://stock-api-ei9o.onrender.com';
+private apiUrl = 'https://stock-api-ei9o.onrender.com/products';
+
 
 
 
