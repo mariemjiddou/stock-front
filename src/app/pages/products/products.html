@@ -1,30 +1,192 @@
-<h2>Gestion des Produits</h2>
+<div class="min-h-screen bg-gray-50">
+  <div class="mx-auto max-w-5xl px-4 py-10">
 
-<h3>Ajouter un produit</h3>
-<input placeholder="Nom" [(ngModel)]="newProduct.name" />
-<input type="number" placeholder="Prix" [(ngModel)]="newProduct.price" />
-<input type="number" placeholder="Quantité" [(ngModel)]="newProduct.quantity" />
-<button type="button" (click)="addProduct()">Ajouter</button>
-
-<hr>
-<h3>Liste des produits</h3>
-
-<ul>
-  <li *ngFor="let p of products" style="margin-bottom: 10px;">
-    <div *ngIf="editingId !== p.id">
-      {{ p.name }} - {{ p.price }} € - Stock: {{ p.quantity }}
-      <button type="button" (click)="startEdit(p)">Modifier</button>
-      <button type="button" (click)="remove(p.id)">Supprimer</button>
+    <!-- Header -->
+    <div class="mb-8 flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Gestion de Produits</h1>
+        <p class="mt-1 text-sm text-gray-600">CRUD + Base de données PostgreSQL (Render)</p>
+      </div>
+      <span class="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
+        Live
+      </span>
     </div>
 
-    <div *ngIf="editingId === p.id">
-      <input [(ngModel)]="editProduct.name" placeholder="Nom">
-      <input type="number" [(ngModel)]="editProduct.price" placeholder="Prix">
-      <input type="number" [(ngModel)]="editProduct.quantity" placeholder="Quantité">
+    <!-- Add product -->
+    <div class="mb-8 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">Ajouter un produit</h2>
 
-      <button type="button" (click)="saveEdit()">Enregistrer</button>
-      <button type="button" (click)="cancelEdit()">Annuler</button>
+      <form class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-4" (ngSubmit)="addProduct()">
+        <div class="sm:col-span-2">
+          <label class="mb-1 block text-sm font-medium text-gray-700">Nom</label>
+          <input
+            class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-none focus:border-gray-900"
+            [(ngModel)]="newProduct.name"
+            name="name"
+            placeholder="Ex: Clavier"
+            required
+          />
+        </div>
+
+        <div>
+          <label class="mb-1 block text-sm font-medium text-gray-700">Prix</label>
+          <input
+            class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-none focus:border-gray-900"
+            [(ngModel)]="newProduct.price"
+            name="price"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="10.00"
+            required
+          />
+        </div>
+
+        <div>
+          <label class="mb-1 block text-sm font-medium text-gray-700">Quantité</label>
+          <input
+            class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 outline-none focus:border-gray-900"
+            [(ngModel)]="newProduct.quantity"
+            name="quantity"
+            type="number"
+            min="0"
+            placeholder="5"
+            required
+          />
+        </div>
+
+        <div class="sm:col-span-4 mt-2 flex items-center gap-3">
+          <button
+            type="submit"
+            class="rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-black"
+          >
+            + Ajouter
+          </button>
+
+          <button
+            type="button"
+            class="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            (click)="newProduct = { name: '', price: 0, quantity: 0 }"
+          >
+            Réinitialiser
+          </button>
+        </div>
+      </form>
     </div>
-  </li>
-</ul>
 
+    <!-- Products table -->
+    <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-gray-900">Liste des produits</h2>
+        <button
+          type="button"
+          class="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+          (click)="loadProducts()"
+        >
+          ↻ Rafraîchir
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-left text-sm">
+          <thead class="border-b border-gray-200 text-gray-600">
+            <tr>
+              <th class="py-3 pr-6 font-semibold">Nom</th>
+              <th class="py-3 pr-6 font-semibold">Prix</th>
+              <th class="py-3 pr-6 font-semibold">Stock</th>
+              <th class="py-3 text-right font-semibold">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <!-- Empty state -->
+            <tr *ngIf="products.length === 0">
+              <td colspan="4" class="py-8 text-center text-gray-500">
+                Aucun produit pour le moment.
+              </td>
+            </tr>
+
+            <!-- Rows -->
+            <tr *ngFor="let p of products" class="border-b border-gray-100">
+              <!-- View mode -->
+              <ng-container *ngIf="editingId !== p.id; else editRow">
+                <td class="py-3 pr-6 font-medium text-gray-900">{{ p.name }}</td>
+                <td class="py-3 pr-6 text-gray-700">{{ p.price }} €</td>
+                <td class="py-3 pr-6 text-gray-700">{{ p.quantity }}</td>
+                <td class="py-3 text-right">
+                  <div class="inline-flex gap-2">
+                    <button
+                      class="rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                      (click)="startEdit(p)"
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      class="rounded-xl bg-red-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-700"
+                      (click)="remove(p.id)"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Edit mode -->
+              <ng-template #editRow>
+                <td class="py-3 pr-6">
+                  <input
+                    class="w-full rounded-xl border border-gray-300 px-3 py-2 outline-none focus:border-gray-900"
+                    [(ngModel)]="editProduct.name"
+                    name="editName"
+                    required
+                  />
+                </td>
+                <td class="py-3 pr-6">
+                  <input
+                    class="w-full rounded-xl border border-gray-300 px-3 py-2 outline-none focus:border-gray-900"
+                    [(ngModel)]="editProduct.price"
+                    name="editPrice"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </td>
+                <td class="py-3 pr-6">
+                  <input
+                    class="w-full rounded-xl border border-gray-300 px-3 py-2 outline-none focus:border-gray-900"
+                    [(ngModel)]="editProduct.quantity"
+                    name="editQty"
+                    type="number"
+                    min="0"
+                    required
+                  />
+                </td>
+                <td class="py-3 text-right">
+                  <div class="inline-flex gap-2">
+                    <button
+                      class="rounded-xl bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-black"
+                      (click)="saveEdit()"
+                    >
+                      Enregistrer
+                    </button>
+                    <button
+                      class="rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                      (click)="cancelEdit()"
+                    >
+                      Annuler
+                    </button>
+                  </div>
+                </td>
+              </ng-template>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <p class="mt-6 text-center text-xs text-gray-500">
+      Projet Cloud Computing • Front Angular + API FastAPI + DB PostgreSQL (Render)
+    </p>
+  </div>
+</div>
